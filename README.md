@@ -78,9 +78,13 @@ export default {
       start QEWD.js with these required params:
       - application: QEWD's application name
       - io: the imported websocket client module
-      - url: the url of your QEWD.js server (hardcoded in this example, the url can be passed in too using a process.env.QEWD_URL parameter)
+      - url: the url of your QEWD.js server (hardcoded in this example,
+        the url can be passed in too using a process.env.QEWD_URL parameter)
 
-      *** important: by default, a Vue.js app will run it's development server on localhost:8080 (this is the same port as QEWD.js's default port 8080) - you'll *need* to change the port to e.g. 8090 in QEWD.js's config to make it work with a Vue.js app!
+      *** important: by default, a Vue.js app will run it's development server on localhost:8080 
+      (this is the same port as QEWD.js's default port 8080)
+      you'll *need* to change the port to e.g. 8090 in QEWD.js's config
+      to make it work with a Vue.js app!
     */
     this.$qewd.start({
       application: 'hello-world',
