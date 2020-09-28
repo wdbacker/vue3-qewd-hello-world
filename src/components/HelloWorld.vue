@@ -28,6 +28,9 @@
       <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
     </ul>
   </div>
+  <hr>
+  <p>message from QEWD: {{ qewdMessage }}</p>
+  <button @click="sendMessage">Send message to QEWD</button>
 </template>
 
 <script>
@@ -35,6 +38,27 @@ export default {
   name: 'HelloWorld',
   props: {
     msg: String
+  },
+  data() {
+    return {
+      // add a reactive property to hold a message coming back from QEWD.js
+      qewdMessage: ''
+    }
+  },
+  methods: {
+    sendMessage() {
+      // preserve Vue.js's this for use in QEWD.js's reply
+      let self = this
+      // send a test 'hello-world' message to QEWD.js
+      this.$qewd.reply({
+        type: 'hello-world'
+      }).then(response => {
+        // log QEWD.js's response on the console
+        console.log(response)
+        // show an error message in the app
+        self.qewdMessage = response.message.error || ''
+      }) 
+    }
   }
 }
 </script>
