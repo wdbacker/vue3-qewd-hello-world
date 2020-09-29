@@ -1,5 +1,7 @@
 # vue3-qewd-hello-world
 
+This is a basic example Vue.js version 3.x app using a QEWD.js back-end. It uses the standard `@vue/cli` [build tools](https://cli.vuejs.org/guide/installation.html). The example assumes you have a QEWD.js back-end server running on `http://localhost:8090`.
+
 ## Generate your app skeleton
 ```bash
 vue create vue3-qewd-hello-world
@@ -13,12 +15,9 @@ npm install
 npm install socket.io-client qewd-client
 ```
 
-### !!! Important !!!
-
-- currently, qewd-client is not published yet on npm, so just copy qewd-client.js to your app's node_modules dir
-- for use with Vue.js apps, use my slightly modified qewd-client.js fork on https://github.com/wdbacker/qewd-client
-
 ### File changes to a fresh Vue.js 3.x app skeleton to integrate with QEWD.js interactive apps (using WebSockets)
+
+*Notice that with the new [qewd-client](https://www.npmjs.com/package/qewd-client) module version, the [vue-qewd](https://www.npmjs.com/package/vue-qewd) plugin module isn't needed anymore. You can still use it if you need to use the legacy [ewd-client](https://www.npmjs.com/package/ewd-client) module.*
 
 - in `src/main.js`:
 ```javascript
@@ -162,3 +161,112 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 ### Debugging with VSCode
 
 See the recipe at [Vue.js debugging in Chrome and VS Code](https://github.com/microsoft/vscode-recipes/tree/master/vuejs-cli)
+
+### Deploying to non-root domain url's
+
+In case you deploy your app and/or your QEWD.js server to a non-root domain url, you need to configure some parameters.
+
+#### The QEWD.js server back-end
+
+When you reverse proxy your QEWD.js server using Apache, Nginx, ... under a non-root path (e.g. `https://mydomain.com/qewd`) you need to configure your webserver to reverse proxy QEWD.js's built-in static webserver under this path. Don't forget to add statements to proxy the websocket `ws://mydomain.com/qewd` and/or `wss://mydomain.com/qewd` protocol too.
+
+- for Apache:
+```
+RewriteEngine on
+RewriteCond %{HTTP:Upgrade} websocket [NC]
+RewriteCond %{HTTP:Connection} upgrade [NC]
+RewriteRule ^/qewd/?(.*) "ws://qewd-server.local:8090/$1" [P,L]
+
+ProxyPass /qewd http://qewd-server.local:8090
+ProxyPassReverse /qewd http://qewd-server.local:8090
+```
+- for Nginx:
+```
+http {
+  server {
+    listen 80;
+    server_mame mydomain.com
+
+    location /qewd {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header Host $host;
+
+      proxy_pass http://qewd-server.local:8090;
+
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+    }
+  }
+}
+```
+In the QEWD.js server config, no changes are necessary.
+
+#### Vue.js web apps
+
+##### The QEWD.js client start parameters
+
+To start the QEWD.js connection successfully from the `qewd-client` module, you need to tell the module where your QEWD.js back-end server lives:
+```javascript
+this.$qewd.start({
+  application: 'hello-world',
+  io,
+  url: 'http://mydomain.com/qewd',
+  io_path: '/qewd'
+})
+```
+Notice both `url` and `io_path` need to contain the url subpath `/qewd`.
+
+##### Deploy your app to a non-root url using Vue's publicPath setting 
+
+When you build your app and deploy it to a non-root url, you need to tell @vue/cli where your app will be deployed in the `vue.config.js` file using the `publicPath` setting:
+
+```javascript
+module.exports = {
+  publicPath: '/vue',
+  configureWebpack: {
+    devtool: "source-map"
+  }
+};
+```
+During development, you need to adjust the `url` setting in your `launch.json` config to point to this public path:
+```javascript
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "vuejs: chrome",
+      "url": "http://localhost:8080/vue",
+      "webRoot": "${workspaceFolder}",
+      "breakOnLoad": true,
+      "pathMapping": {
+        "/_karma_webpack_": "${workspaceFolder}"
+      },
+      "sourceMapPathOverrides": {
+        "webpack:/*": "${webRoot}/*",
+        "/./*": "${webRoot}/*",
+        "/src/*": "${webRoot}/*",
+        "/*": "*",
+        "/./~/*": "${webRoot}/node_modules/*"
+      },
+      "preLaunchTask": "vuejs: start"
+    }
+  ]
+}
+```
+The `tasks.json` with the `vuejs: start` pre-launch task:
+```javascript
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "vuejs: start",
+      "type": "npm",
+      "script": "serve",
+      "isBackground": true
+    }
+  ]
+}
+```
