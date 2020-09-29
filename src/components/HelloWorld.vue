@@ -27,10 +27,10 @@
       <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
       <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
     </ul>
+    <hr>
+    <p>message from QEWD: {{ qewdMessage }}</p>
+    <button @click="sendMessage">Send message to QEWD</button>
   </div>
-  <hr>
-  <p>message from QEWD: {{ qewdMessage }}</p>
-  <button @click="sendMessage">Send message to QEWD</button>
 </template>
 
 <script>
