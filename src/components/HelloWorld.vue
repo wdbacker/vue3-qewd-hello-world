@@ -51,12 +51,12 @@ export default {
       let self = this
       // send a test 'hello-world' message to QEWD.js
       this.$qewd.reply({
-        type: 'hello-world'
+        type: 'hello world'
       }).then(response => {
         // log QEWD.js's response on the console
         console.log(response)
         // show an error message in the app
-        self.qewdMessage = response.message.error || ''
+        self.qewdMessage = response.message.error || response.message.text || ''
       }) 
     }
   }
